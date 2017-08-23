@@ -1,23 +1,40 @@
 pragma solidity ^0.4.0;
 
-contract owned{
-    address owner;
-    
-    modifier onlyowner(){
-        if (msg.sender == owner){
-            _;
-        }
-        
+contract Owned {
+
+    address public owner = msg.sender;
+    address public potentialOwner;
+
+    modifier onlyOwner {
+      require(msg.sender == owner);
+      _;
     }
-    
-    function owned(){
-        owner = msg.sender;
-        
+
+    modifier onlyPotentialOwner {
+      require(msg.sender == potentialOwner);
+      _;
     }
-    
+
+    event NewOwner(address old, address current);
+    event NewPotentialOwner(address old, address potential);
+
+    function setOwner(address _new)
+      onlyOwner
+    {
+      NewPotentialOwner(owner, _new);
+      potentialOwner = _new;
+    }
+
+    function confirmOwnership()
+      onlyPotentialOwner
+    {
+      NewOwner(owner, potentialOwner);
+      owner = potentialOwner;
+      potentialOwner = 0;
+    }
 }
 
-contract mortal is owned{
+contract mortal is Owned{
     function kill(){
         if(msg.sender == owner)
             selfdestruct(owner);
