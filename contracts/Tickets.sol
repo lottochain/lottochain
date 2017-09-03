@@ -2,31 +2,51 @@ pragma solidity ^0.4.0;
 
 import "./Owned.sol";
 
-contract Tickets is mortal{
+contract Tickets is Owned, mortal{
     
     uint ticketDailyIndex;
     uint ticketWeeklyIndex;
     uint ticketMonthlyIndex;
-    uint drawIndex;
-    uint dailyDrawBlock;
-    uint weeklyDrawBlock;
-    uint monthlyDrawBlock;
-    address drawnAddress;
+    
+    address mainWallet = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
+    
+    address dailyWallet = 0xdd870fa1b7c4700f2bd7f44238821c26f7392148;
+    address weeklyWallet = 0x583031d1113ad414f02576bd6afabfb302140225;
+    address monthlyWallet = 0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db;
+    
+    address lcWallet = 0x0;
+    address tokensWallet = 0x0;
+    
+    function() payable{
+        
+    }
     
     mapping (uint => address) dailyTickets;
     mapping (uint => address) weeklyTickets;
     mapping (uint => address) monthlyTickets;
+    
+    function addTicket(address _from, uint amount) onlyOwner returns(uint){
 
-    function addTicket(address _from) onlyOwner{
         ticketDailyIndex++;
         dailyTickets[ticketDailyIndex] = _from;
+        dailyWallet.transfer(amount/2);
         
         ticketWeeklyIndex++;
         weeklyTickets[ticketWeeklyIndex] = _from;
+        weeklyWallet.transfer(amount*20/100);
         
         ticketMonthlyIndex++;
         monthlyTickets[ticketMonthlyIndex] = _from;
+        monthlyWallet.transfer(amount*10/100);
         
+    }
+    
+    function mainBalance() returns(uint){
+        return mainWallet.balance;
+    }
+    
+    function contractBalance() returns(uint){
+        return this.balance;
     }
     
     // Convention
@@ -86,6 +106,13 @@ contract Tickets is mortal{
     
     function drawWinner(byte dwm) onlyOwner returns(address){
     //hardcoding blocks hashes. later they'll be parameterized
+    
+        uint drawIndex;
+        address drawnAddress;
+        
+        uint dailyDrawBlock;
+        uint weeklyDrawBlock;
+        uint monthlyDrawBlock;
     
         dailyDrawBlock = uint(0xca35b7d915458ef540ade6068dfe2f44e8fa733c);
         weeklyDrawBlock = uint(0x14723a09acff6d2a60dcdf7aa4aff308fddc160c);
