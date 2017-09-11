@@ -1,3 +1,5 @@
+import "./Owned.sol";
+
 contract Tickets is Owned, mortal{
     
     uint ticketDailyIndex;
