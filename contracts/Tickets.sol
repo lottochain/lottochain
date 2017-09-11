@@ -1,21 +1,60 @@
-pragma solidity ^0.4.0;
-
-import "./Owned.sol";
-
 contract Tickets is Owned, mortal{
     
     uint ticketDailyIndex;
     uint ticketWeeklyIndex;
     uint ticketMonthlyIndex;
+
+    address mainWallet = 0xf14E5661f99818eb07FD6A0c593dFe70ceD96E25;
+
+    address dailyWallet = 0xbAA886699b79e8E1048a0F4B6cDcC814392da218;
+    address weeklyWallet = 0x957E5bA48aE5DF08768f802130BD38af9f2B40a4;
+    address monthlyWallet = 0xD7c0dbF7bEd9b104E8DCBF73fED834cFD2451726;
     
-    address mainWallet = 0x14723a09acff6d2a60dcdf7aa4aff308fddc160c;
+    address lcWallet = 0x27A1fC31cb146B9A97A32f79DBa93E4920b056C8;
+    address tokensWallet = 0x9394c3c1CdeEb01736Ace0CF65B77d8279504797;
+
+    address lc1 = 0xa3744Cc050A533FeDD48BF944ceDF52c49967240;
+    address lc2 = 0xACE95bD646A6ed7a8c17EB263157Bf03eDAEe7eB;
+    address lc3 = 0x9dDAc2fdC17D3ED37fbAf11dA8323F6FA6BB295E;
     
-    address dailyWallet = 0xdd870fa1b7c4700f2bd7f44238821c26f7392148;
-    address weeklyWallet = 0x583031d1113ad414f02576bd6afabfb302140225;
-    address monthlyWallet = 0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db;
     
-    address lcWallet = 0x0;
-    address tokensWallet = 0x0;
+
+    function defineWallet(uint walletType, address walletAddress) onlyOwner{
+        /*
+            1 - main
+            2 - daily
+            3 - weekly
+            4 - monthly
+            5 - LottoChain
+            6 - tokens
+            7 - lc1
+            8 - lc2
+            9 - lc3
+        */
+
+        if(walletType == 1){
+            mainWallet = walletAddress;
+        }else if(walletType == 2){
+            dailyWallet = walletAddress;
+        }else if(walletType == 3){
+            weeklyWallet = walletAddress;
+        }else if(walletType == 4){
+            monthlyWallet = walletAddress;
+        }else if(walletType == 5){
+            lcWallet = walletAddress;
+        }else if(walletType == 6){
+            tokensWallet = walletAddress;
+        }else if(walletType == 7){
+            lc1 = walletAddress;
+        }else if(walletType == 8){
+            lc2 = walletAddress;
+        }else if(walletType == 9){
+            lc3 = walletAddress;
+        }else {
+            revert();
+        }
+    }
+
     
     function() payable{
         
@@ -25,59 +64,42 @@ contract Tickets is Owned, mortal{
     mapping (uint => address) weeklyTickets;
     mapping (uint => address) monthlyTickets;
     
-    function addTicket(address _from, uint amount) onlyOwner returns(uint){
+    function addTicket(address ticketAddress) onlyOwner payable returns(uint){
 
         ticketDailyIndex++;
-        dailyTickets[ticketDailyIndex] = _from;
-        dailyWallet.transfer(amount/2);
+        dailyTickets[ticketDailyIndex] = ticketAddress;
+        dailyWallet.transfer(msg.value/2);
         
         ticketWeeklyIndex++;
-        weeklyTickets[ticketWeeklyIndex] = _from;
-        weeklyWallet.transfer(amount*20/100);
+        weeklyTickets[ticketWeeklyIndex] = ticketAddress;
+        weeklyWallet.transfer(msg.value*20/100);
         
         ticketMonthlyIndex++;
-        monthlyTickets[ticketMonthlyIndex] = _from;
-        monthlyWallet.transfer(amount*10/100);
+        monthlyTickets[ticketMonthlyIndex] = ticketAddress;
+        monthlyWallet.transfer(msg.value*10/100);
+
+        lcWallet.transfer(msg.value*10/100);
+        tokensWallet.transfer(msg.value*10/100);
         
-    }
-    
-    function mainBalance() returns(uint){
-        return mainWallet.balance;
-    }
-    
-    function contractBalance() returns(uint){
-        return this.balance;
     }
     
     // Convention
-    // dwm: d = Daily, w = Weekly, m = Monthly
+    // dwm: 1 = Daily, 2 = Weekly, 3 = Monthly
     
-    function ticketCounts(byte dwm) returns(uint){
-        if(dwm=="d"){
-            return ticketDailyIndex;
-        } else if(dwm=="w"){
-            return ticketWeeklyIndex;
-        } else if(dwm=="m"){
-            return ticketMonthlyIndex;
-        } else {
-            revert();
-        }
-    }
-    
-    function pickTicket(byte dwm, uint pickIndex) returns(address){
-        if(dwm=="d"){
+    function pickTicket(uint dwm, uint pickIndex) returns(address){
+        if(dwm == 1){
             if(pickIndex <= ticketDailyIndex){
                 return dailyTickets[pickIndex];
             } else {
                 revert();
             }
-        } else if(dwm=="w"){
+        } else if(dwm == 2){
             if(pickIndex <= ticketWeeklyIndex){
                 return weeklyTickets[pickIndex];
             } else {
                 revert();
             }
-        } else if(dwm=="m"){
+        } else if(dwm == 3){
             if(pickIndex <= ticketMonthlyIndex){
                 return monthlyTickets[pickIndex];
             } else {
@@ -88,15 +110,15 @@ contract Tickets is Owned, mortal{
         }
     }
     
-    function cleanTickets(byte dwm) onlyOwner{
+    function cleanTickets(uint dwm){
     //aiming to save gas.
     //Only reset the number of tickets instead of deleting the whole mapping.
         
-        if(dwm=="d"){
+        if(dwm == 1 && msg.sender == dailyWallet){
             ticketDailyIndex = 0;
-        } else if(dwm=="w"){
+        } else if(dwm == 2 && msg.sender == weeklyWallet){
             ticketWeeklyIndex = 0;
-        } else if(dwm=="m"){
+        } else if(dwm == 3 && msg.sender == monthlyWallet){
             ticketMonthlyIndex = 0;
         } else {
             revert();
@@ -104,33 +126,29 @@ contract Tickets is Owned, mortal{
         
     }
     
-    function drawWinner(byte dwm) onlyOwner returns(address){
-    //hardcoding blocks hashes. later they'll be parameterized
+    function drawWinner(uint dwm, address hashDraw) payable{
     
         uint drawIndex;
-        address drawnAddress;
         
-        uint dailyDrawBlock;
-        uint weeklyDrawBlock;
-        uint monthlyDrawBlock;
-    
-        dailyDrawBlock = uint(0xca35b7d915458ef540ade6068dfe2f44e8fa733c);
-        weeklyDrawBlock = uint(0x14723a09acff6d2a60dcdf7aa4aff308fddc160c);
-        monthlyDrawBlock = uint(0x4b0897b0513fdc7c541b6d9d7e929c4e5364d2db);
-        
-        if(dwm=="d" && ticketDailyIndex > 0){
-            drawIndex = dailyDrawBlock % ticketDailyIndex + 1;            
-        } else if(dwm=="w" && ticketWeeklyIndex > 0){
-            drawIndex = weeklyDrawBlock % ticketWeeklyIndex + 1;
-        } else if(dwm=="m" && ticketMonthlyIndex > 0){
-            drawIndex = monthlyDrawBlock % ticketMonthlyIndex + 1;
+        if(dwm == 1 && ticketDailyIndex > 0 && msg.sender == dailyWallet){
+            drawIndex = uint(hashDraw) % ticketDailyIndex + 1;            
+        } else if(dwm == 2 && ticketWeeklyIndex > 0 && msg.sender == weeklyWallet){
+            drawIndex = uint(hashDraw) % ticketWeeklyIndex + 1;
+        } else if(dwm == 3 && ticketMonthlyIndex > 0 && msg.sender == monthlyWallet){
+            drawIndex = uint(hashDraw) % ticketMonthlyIndex + 1;
         } else {
             revert();
         }
         
-        drawnAddress = pickTicket(dwm,drawIndex);
+        //drawnAddress = pickTicket(dwm,drawIndex);
+
+        pickTicket(dwm,drawIndex).transfer(msg.value/1000*955);
+
+        lc1.transfer(msg.value/1000*15);
+        lc2.transfer(msg.value/1000*15);
+        lc3.transfer(msg.value/1000*15);
+
         cleanTickets(dwm);
-        return drawnAddress;
     }
     
 }
