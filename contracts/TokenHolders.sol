@@ -2,19 +2,27 @@ pragma solidity ^0.4.11;
 
 import "./Owned.sol";
 
-
 ///@title TokenHolders Adds new Tokens to the Token Holders list; Draws a winner for the Token Holder prize.
-///@author paulofelipe84 - paulofelipe@lottochain.io
+///@author paulofelipe84 - paulo.barbosa@lottochain.io
 
 contract TokenHolders is Owned, mortal{
 
+    address tokensWallet = 0x6Cb999135AF163f396d87C50b8DA132b516dbe64;
+
     address[] thList;
     
-    
+    ///@dev Defines the Token Holders prize wallet
+    ///@param walletAddress The Token Holders prize wallet address
+    function defineWallet(address walletAddress) external onlyOwner{
+
+        tokensWallet = walletAddress;
+        
+    }
+
     ///@dev Adds a new Token to the Token Holders list
     ///@param thPrizeAddress The wallet address where the Token Holder will receive their prize
     ///@param thPurchasedQuantity The amount of Tokens purchased. Every single Token grants a position in the Token list for the Token Holder.
-    function addTH(address thPrizeAddress, uint thPurchasedQuantity) onlyOwner{
+    function addTH(address thPrizeAddress, uint thPurchasedQuantity) external onlyOwner{
 
         while(thPurchasedQuantity > 0){
 
@@ -30,8 +38,8 @@ contract TokenHolders is Owned, mortal{
     ///@param hashDraw1 First Hash to compose the draw seed
     ///@param hashDraw2 Second Hash to compose the draw seed
     ///@return Drawn Token Holder address
-    function drawTH(address hashDraw1, address hashDraw2) onlyOwner returns(address){
-    	if(thList.length > 0){
+    function drawTH(address hashDraw1, address hashDraw2) external payable returns(address){
+    	if(thList.length > 0 && msg.sender == tokensWallet){
         	
         	uint hashDraw = uint(hashDraw1) + uint(hashDraw2);
                 
@@ -47,6 +55,9 @@ contract TokenHolders is Owned, mortal{
             //Removes the last position address since it was copied to the position of the drawn Token Holder address
             thList.length--;
 
+            //Transfers the prize to the winner Token Holder
+            drawnTH.transfer(msg.value);
+
             return drawnTH;
         
         } else {
@@ -56,4 +67,3 @@ contract TokenHolders is Owned, mortal{
     }
     
 }
-
