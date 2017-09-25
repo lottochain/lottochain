@@ -1,0 +1,98 @@
+{
+  "contract_name": "mortal",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "_new",
+          "type": "address"
+        }
+      ],
+      "name": "setOwner",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "kill",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "potentialOwner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": true,
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "constant": false,
+      "inputs": [],
+      "name": "confirmOwnership",
+      "outputs": [],
+      "payable": false,
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "old",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "current",
+          "type": "address"
+        }
+      ],
+      "name": "NewOwner",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": false,
+          "name": "old",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "name": "potential",
+          "type": "address"
+        }
+      ],
+      "name": "NewPotentialOwner",
+      "type": "event"
+    }
+  ],
+  "unlinked_binary": "0x606060405260008054600160a060020a03191633600160a060020a0316179055341561002a57600080fd5b5b6102c78061003a6000396000f300606060405263ffffffff7c010000000000000000000000000000000000000000000000000000000060003504166313af4035811461006957806341c0e1b51461008a5780637762df251461009f5780638da5cb5b146100ce578063d5d1e770146100fd575b600080fd5b341561007457600080fd5b610088600160a060020a0360043516610112565b005b341561009557600080fd5b6100886101ac565b005b34156100aa57600080fd5b6100b26101d4565b604051600160a060020a03909116815260200160405180910390f35b34156100d957600080fd5b6100b26101e3565b604051600160a060020a03909116815260200160405180910390f35b341561010857600080fd5b6100886101f2565b005b60005433600160a060020a0390811691161461012d57600080fd5b6000547f8a95addc59dddee94a894365b5c66c6c2473b7084d3fd1df9f503db4a2cd6dcc90600160a060020a031682604051600160a060020a039283168152911660208201526040908101905180910390a16001805473ffffffffffffffffffffffffffffffffffffffff1916600160a060020a0383161790555b5b50565b60005433600160a060020a03908116911614156101d157600054600160a060020a0316ff5b5b565b600154600160a060020a031681565b600054600160a060020a031681565b60015433600160a060020a0390811691161461020d57600080fd5b6000546001547f70aea8d848e8a90fb7661b227dc522eb6395c3dac71b63cb59edd5c9899b236491600160a060020a039081169116604051600160a060020a039283168152911660208201526040908101905180910390a1600180546000805473ffffffffffffffffffffffffffffffffffffffff19908116600160a060020a038416179091551690555b5b5600a165627a7a7230582039001486cfbf0bdaa927662d365d8a37bd8ebc4af893b1e7f25b3968f6137a970029",
+  "networks": {},
+  "schema_version": "0.0.5",
+  "updated_at": 1506267474074
+}
