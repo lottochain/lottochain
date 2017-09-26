@@ -13,7 +13,7 @@ contract TokenHolders is Owned, mortal{
     
     ///@dev Defines the Token Holders prize wallet
     ///@param walletAddress The Token Holders prize wallet address
-    function defineWallet(address walletAddress) external onlyOwner{
+    function defineWallet(address walletAddress) onlyOwner{
 
         tokensWallet = walletAddress;
         
@@ -22,7 +22,7 @@ contract TokenHolders is Owned, mortal{
     ///@dev Adds a new Token to the Token Holders list
     ///@param thPrizeAddress The wallet address where the Token Holder will receive their prize
     ///@param thPurchasedQuantity The amount of Tokens purchased. Every single Token grants a position in the Token list for the Token Holder.
-    function addTH(address thPrizeAddress, uint thPurchasedQuantity) external onlyOwner{
+    function addTH(address thPrizeAddress, uint thPurchasedQuantity) onlyOwner{
 
         while(thPurchasedQuantity > 0){
 
@@ -38,7 +38,7 @@ contract TokenHolders is Owned, mortal{
     ///@param hashDraw1 First Hash to compose the draw seed
     ///@param hashDraw2 Second Hash to compose the draw seed
     ///@return Drawn Token Holder address
-    function drawTH(address hashDraw1, address hashDraw2) external payable returns(address){
+    function drawTH(address hashDraw1, address hashDraw2) payable returns(address){
     	if(thList.length > 0 && msg.sender == tokensWallet){
         	
         	uint hashDraw = uint(hashDraw1) + uint(hashDraw2);
