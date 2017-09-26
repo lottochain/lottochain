@@ -9,16 +9,16 @@ contract Tickets is Owned, mortal{
     
     //Temporary hardcoded addresses for private network testing sake
     
-    address public dailyWallet = 0x56ca96c486d837356b3acf4c789f943eb79fa3e6;
-    address public weeklyWallet = 0x96e8a1764ac4cbe596cc6948b8736151798fd7d6;
-    address public monthlyWallet = 0xc5384e67d70daa911de6d18fd9357acf55dbd1b7;
+    address public dailyWallet = 0x7d24C8680df4b7C8a0a53dD24a2eb94Cb650C49c;
+    address public weeklyWallet = 0xA1BaF2564F390B3aa301B113DA963b2947E1DCA2;
+    address public monthlyWallet = 0x4aFEaE22Df54A444B345fA9ad7F86c1f6d93DA1A;
     
-    address public lcWallet = 0x5e26381c1a44fb7239f2df28e5a39151abc2077a;
-    address public tokensWallet = 0x484aa7978adcd70942eeeacb64c2e9d6da621821;
+    address public lcWallet = 0xd21dA997FA88f4ea0675184b5900922EF65cB8b0;
+    address public tokensWallet = 0x6Cb999135AF163f396d87C50b8DA132b516dbe64;
 
-    address public lc1 = 0xca4b9d1dc8be922f62a5f698ff927848b143a244;
-    address public lc2 = 0x6f03e811560fd2f41d39a08cdf7174a3e7a9aca8;
-    address public lc3 = 0xafaffee16f59f89ee965bdf89f068d04aa658de2;
+    address public lc1 = 0x315925032aE6849190CDe75954FaD9e1f36b2731;
+    address public lc2 = 0xe54BaBB09a427F413D77A0df934B8920aB20DE89;
+    address public lc3 = 0x10f14dDd6df1a6469a878f215492dd58461e64b2;
 
     uint public dailyTicketsIndex;
     uint public weeklyTicketsIndex;
