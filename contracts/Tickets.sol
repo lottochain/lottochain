@@ -84,11 +84,11 @@ contract Tickets is Owned, mortal{
         }
         
         dailyWallet.transfer(msg.value/2); // 50%
-        weeklyWallet.transfer(msg.value*20/100); // 20%
-        monthlyWallet.transfer(msg.value*10/100); // 10%
+        weeklyWallet.transfer(msg.value/5); // 20%
+        monthlyWallet.transfer(msg.value/10); // 10%
 
-        lcWallet.transfer(msg.value*10/100); // 10% 
-        tokensWallet.transfer(msg.value*10/100); // 10%
+        lcWallet.transfer(msg.value/10); // 10% 
+        tokensWallet.transfer(msg.value/10); // 10%
         
     }    
 
@@ -148,11 +148,11 @@ contract Tickets is Owned, mortal{
             revert();
         }
 
-        drawnAddress.transfer(msg.value/1000*955); // Transfers total amount minus taxes
+        drawnAddress.transfer(msg.value/1000*955); // Transfers total amount minus fees (95%)
 
-        lc1.transfer(msg.value/1000*15); // Taxes 1
-        lc2.transfer(msg.value/1000*15); // Taxes 2
-        lc3.transfer(msg.value/1000*15); // Taxes 3
+        lc1.transfer(msg.value/1000*15); // Taxes 1 (1,5%)
+        lc2.transfer(msg.value/1000*15); // Taxes 2 (1,5%)
+        lc3.transfer(msg.value/1000*15); // Taxes 3 (1,5%)
 
         return drawnAddress;
     }
