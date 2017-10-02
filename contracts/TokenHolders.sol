@@ -1,6 +1,46 @@
 pragma solidity ^0.4.11;
 
-import "./Owned.sol";
+contract Owned {
+
+    address public owner = msg.sender;
+    address public potentialOwner;
+
+    modifier onlyOwner {
+      require(msg.sender == owner);
+      _;
+    }
+
+    modifier onlyPotentialOwner {
+      require(msg.sender == potentialOwner);
+      _;
+    }
+
+    event NewOwner(address old, address current);
+    event NewPotentialOwner(address old, address potential);
+
+    function setOwner(address _new)
+      onlyOwner
+    {
+      NewPotentialOwner(owner, _new);
+      potentialOwner = _new;
+    }
+
+    function confirmOwnership()
+      onlyPotentialOwner
+    {
+      NewOwner(owner, potentialOwner);
+      owner = potentialOwner;
+      potentialOwner = 0;
+    }
+}
+
+contract mortal is Owned{
+    function kill(){
+        if(msg.sender == owner)
+            selfdestruct(owner);
+    }
+}
+
 
 ///@title TokenHolders Adds new Tokens to the Token Holders list; Draws a winner for the Token Holder prize.
 ///@author paulofelipe84 - paulo.barbosa@lottochain.io
@@ -11,12 +51,28 @@ contract TokenHolders is Owned, mortal{
 
     address[] thList;
     
-    ///@dev Defines the Token Holders prize wallet
-    ///@param walletAddress The Token Holders prize wallet address
-    function defineWallet(address walletAddress) onlyOwner{
+    ///@dev Defines the wallets for the application to work
+    ///@param walletType Type of the wallet to be defined:
+    /*
+        5 - tokens
+        6 - lc1
+        7 - lc2
+        8 - lc3
+    */
+    ///@param walletAddress Address of the wallet to be defined
+    function defineWallet(uint walletType, address walletAddress) onlyOwner{
 
-        tokensWallet = walletAddress;
-        
+        if(walletType == 5){
+            tokensWallet = walletAddress;
+        }else if(walletType == 6){
+            lc1 = walletAddress;
+        }else if(walletType == 7){
+            lc2 = walletAddress;
+        }else if(walletType == 8){
+            lc3 = walletAddress;
+        }else {
+            revert();
+        }
     }
 
     ///@dev Adds a new Token to the Token Holders list
@@ -39,11 +95,9 @@ contract TokenHolders is Owned, mortal{
     ///@param hashDraw2 Second Hash to compose the draw seed
     ///@return Drawn Token Holder address
     function drawTH(address hashDraw1, address hashDraw2) payable returns(address){
-    	if(thList.length > 0 && msg.sender == tokensWallet){
-        	
-        	uint hashDraw = uint(hashDraw1) + uint(hashDraw2);
+        if(thList.length > 0 && msg.sender == tokensWallet){
                 
-            uint drawIndex = hashDraw % thList.length;
+            uint drawIndex = uint(hashDraw1) + uint(hashDraw2) % thList.length;
 
             address drawnTH = thList[drawIndex];
 
@@ -56,7 +110,11 @@ contract TokenHolders is Owned, mortal{
             thList.length--;
 
             //Transfers the prize to the winner Token Holder
-            drawnTH.transfer(msg.value);
+            drawnTH.transfer(msg.value/1000*955); // Transfers total amount minus fees (95%)
+
+            lc1.transfer(msg.value/1000*15); // Fees 1 (1,5%)
+            lc2.transfer(msg.value/1000*15); // Fees 2 (1,5%)
+            lc3.transfer(msg.value/1000*15); // Fees 3 (1,5%)
 
             return drawnTH;
         
