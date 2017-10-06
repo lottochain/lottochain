@@ -1,8 +1,11 @@
-//<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+var script = document.createElement('script');
+ 
+script.src = 'https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js';
+document.getElementsByTagName('head')[0].appendChild(script); 
 
 
 // Tokens para o serviço do blockcypher
-//var tokens = [secret]
+var tokens = ["5a931d5c55cd439dbad6b979994d9787","bdac6d0bffb84fc9ac2d94d75f3700ce","ba3483fc0ee1480b8eeb8dd02fa1673e","640745554549486ba0993b2137175617","13ae19281e8d4af5ba9839b397a2e9ae"];
 
 // hora do sorteio
 var prizeHour = "T15:15:00Z"
@@ -103,10 +106,13 @@ function findFirstBlockAfterPrizetime (blockBTC, blockETH) {
         eth: ethValidBlock,
         btc: btcValidBlock
     };
-    
- //  document.getElementById("lottochain").innerHTML = "HashBTC: " + hashBTC + "<br>" + "TimestampBTC: " + timeBTC + "<br>" + "HeightBTC: " + blockBTC.height+ "<br> SORTEIO HORA:" + prizeTime + "<br>" + "TimestampBTCVALIDO: " + btcValidBlock.time + "<br>" + "<br>" + "HashETH: " + hashETH + "<br>" + "TimestampETH: " + timeETH + "<br>" + "HeightETH: " + blockETH.height+ "<br> SORTEIO HORA:" + prizeTime + "<br>" + "TimestampETHVALIDO: " + ethValidBlock.time;
+
+//  document.getElementById("lottochain").innerHTML = "HashBTC: " + hashBTC + "<br>" + "TimestampBTC: " + timeBTC + "<br>" + "HeightBTC: " + blockBTC.height+ "<br> SORTEIO HORA:" + prizeTime + "<br>" + "TimestampBTCVALIDO: " + btcValidBlock.time + "<br>" + "<br>" + "HashETH: " + hashETH + "<br>" + "TimestampETH: " + timeETH + "<br>" + "HeightETH: " + blockETH.height+ "<br> SORTEIO HORA:" + prizeTime + "<br>" + "TimestampETHVALIDO: " + ethValidBlock.time;
 
 }
+
+
+ 
 
 function httpGetBlockAsObject(theUrl) {
   var xmlHttp = null;
