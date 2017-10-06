@@ -87,7 +87,8 @@ function findFirstBlockAfterPrizetime (blockBTC, blockETH) {
     tsPrev = Math.round(+new Date(previousBTC.time));
     
     if (ts <= timePrize) {
-        return "ERROR: BLOCK ANTERIOR AO HORARIO DO PREMIO";
+        //return "ERROR: BLOCK TIME before draw event time";
+	return 99; // if return code is 99, external script should wait to get ETH and BTC block till next block is mined
     }
     else if (tsPrev <= ts && tsPrev > timePrize) {
     		counter++;
