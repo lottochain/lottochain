@@ -7,18 +7,16 @@ import "./Owned.sol";
 ///@author paulofelipe84 - paulo.barbosa@lottochain.io
 contract Tickets is Owned, mortal{
     
-    //Temporary hardcoded addresses for private network testing sake
-    
-    address public dailyWallet = 0x7d24C8680df4b7C8a0a53dD24a2eb94Cb650C49c;
-    address public weeklyWallet = 0xA1BaF2564F390B3aa301B113DA963b2947E1DCA2;
-    address public monthlyWallet = 0x4aFEaE22Df54A444B345fA9ad7F86c1f6d93DA1A;
-    
-    address public lcWallet = 0xd21dA997FA88f4ea0675184b5900922EF65cB8b0;
-    address public tokensWallet = 0x6Cb999135AF163f396d87C50b8DA132b516dbe64;
+    address public dailyWallet;
+    address public weeklyWallet;
+    address public monthlyWallet;
 
-    address public lc1 = 0x315925032aE6849190CDe75954FaD9e1f36b2731;
-    address public lc2 = 0xe54BaBB09a427F413D77A0df934B8920aB20DE89;
-    address public lc3 = 0x10f14dDd6df1a6469a878f215492dd58461e64b2;
+    address public lcWallet;
+    address public tokensWallet;
+
+    address public lc1;
+    address public lc2;
+    address public lc3;
 
     uint public dailyTicketsIndex;
     uint public weeklyTicketsIndex;
@@ -42,7 +40,7 @@ contract Tickets is Owned, mortal{
         8 - lc3
     */
     ///@param walletAddress Address of the wallet to be defined
-    function defineWallet(uint walletType, address walletAddress) onlyOwner{
+    function defineWallet(uint walletType, address walletAddress) onlyOwner public{
 
         if(walletType == 1){
             dailyWallet = walletAddress;
@@ -68,7 +66,9 @@ contract Tickets is Owned, mortal{
     ///@dev Adds a Ticket address to the daily, weekly and monthly draw lists
     ///@param ticketAddress Address of the ticket purchased, where the prize will be transferred to
     ///@param ticketQuantity Quantity of tickets purchased
-    function addTicket(address ticketAddress, uint ticketQuantity) onlyOwner payable{
+    function addTicket(address ticketAddress, uint ticketQuantity) onlyOwner payable public{
+
+        require(ticketQuantity <= 10);
 
         while(ticketQuantity > 0){
             dailyTicketsIndex++;
@@ -96,7 +96,7 @@ contract Tickets is Owned, mortal{
     ///@param dwm The type of Draw: 1 = Daily, 2 = Weekly, 3 = Monthly
     ///@param hashDraw1 First Hash to compose the draw seed
     ///@param hashDraw2 Second Hash to compose the draw seed
-    function drawWinner(uint dwm, address hashDraw1, address hashDraw2) payable returns(address){
+    function drawWinner(uint dwm, address hashDraw1, address hashDraw2) payable public returns(address){
     
         uint drawIndex;
 
@@ -150,9 +150,9 @@ contract Tickets is Owned, mortal{
 
         drawnAddress.transfer(msg.value/1000*955); // Transfers total amount minus fees (95%)
 
-        lc1.transfer(msg.value/1000*15); // Taxes 1 (1,5%)
-        lc2.transfer(msg.value/1000*15); // Taxes 2 (1,5%)
-        lc3.transfer(msg.value/1000*15); // Taxes 3 (1,5%)
+        lc1.transfer(msg.value/1000*15); // Fee 1 (1.5%)
+        lc2.transfer(msg.value/1000*15); // Fee 2 (1.5%)
+        lc3.transfer(msg.value/1000*15); // Fee 3 (1.5%)
 
         return drawnAddress;
     }
