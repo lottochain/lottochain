@@ -1,4 +1,4 @@
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.11;
 
 contract Owned {
 
@@ -18,16 +18,12 @@ contract Owned {
     event NewOwner(address old, address current);
     event NewPotentialOwner(address old, address potential);
 
-    function setOwner(address _new)
-      onlyOwner
-    {
+    function setOwner(address _new) public onlyOwner {
       NewPotentialOwner(owner, _new);
       potentialOwner = _new;
     }
 
-    function confirmOwnership()
-      onlyPotentialOwner
-    {
+    function confirmOwnership() public onlyPotentialOwner {
       NewOwner(owner, potentialOwner);
       owner = potentialOwner;
       potentialOwner = 0;
@@ -35,8 +31,8 @@ contract Owned {
 }
 
 contract mortal is Owned{
-    function kill(){
-        if(msg.sender == owner)
-            selfdestruct(owner);
-    }
+  function kill() public{
+    if(msg.sender == owner)
+      selfdestruct(owner);
+  }
 }
