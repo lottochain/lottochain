@@ -11,13 +11,24 @@ contract LottochainSuperTickets {
     function chargeDrawnAddress(address _drawnAddress) public;
 }
 
-contract LottochainTickets {
+contract LottochainDrawsHistory {
+    function addDrawHistory(uint _drawDate, uint8 _drawType, bytes32 _hashDraw1, bytes32 _hashDraw2, address _drawnAddress, uint _prize) public;
+    function getDrawHistory(uint _drawDate, uint8 _drawType) public view returns(bytes32 hashDraw1, bytes32 hashDraw2, address drawnAddress, uint blockNumber, uint prize);
+    function addAddressValidTicket(address _address) public;
+    function getAddressCurrentTicketQty(address _address) public view returns(uint dailyTicketsBalance, uint weeklyTicketsBalance, uint monthlyTicketsBalance);
+    function closeDraw(uint8 _drawType) public;
+}
+
+contract Lottochain {
     //Ownership support
     address public owner;
     address public potentialOwner;
     
     //LOTTO Token contract for Super Tickets draw
     address public superTicketsContractAddress;
+    
+    //DrawsHistory contract
+    address public drawsHistoryContractAddress;
     
     //Lottery control
     bool public lotteryActive;
@@ -54,26 +65,7 @@ contract LottochainTickets {
     //address is authorized as an administrator
     mapping (address => bool) public authorizedAddresses;
 
-    //Attributes of a draw to be stored for future reference
-    struct drawAttributes {
-        bytes32 hashDraw1;
-        bytes32 hashDraw2;
-        address drawnAddress;
-        uint blockNumber;
-        uint prize;
-    }
-    //Mapping to store historical data about draws
-    //First level is the date in the format YYYYMMDD
-    //Second level is the draw type: 1 = Daily, 2 = Weekly, 3 = Monthly, 4 = Super Tickets
-    mapping (uint => mapping (uint => drawAttributes)) public drawsHistory;
-
     event BuyTicket(
-        address userAddress, 
-        uint ticketPrice, 
-        uint ticketsQuantity
-    );
-    
-    event BuySuperTicket(
         address userAddress, 
         uint ticketPrice, 
         uint ticketsQuantity
@@ -121,7 +113,7 @@ contract LottochainTickets {
      *
      * Assigns contract owner
      */
-    function LottochainTickets() public {
+    function Lottochain() public {
         owner = msg.sender;
         // Just being safe.
         potentialOwner = msg.sender;
@@ -178,6 +170,12 @@ contract LottochainTickets {
     function setSuperTicketsContractAddress(address _newAddress) public onlyAdmins {
         superTicketsContractAddress = _newAddress;
     }
+    
+    ///@dev Updates the Draws History contract address. 
+    ///@param _newAddress The new contract address
+    function setDrawsHistoryContractAddress(address _newAddress) public onlyAdmins {
+        drawsHistoryContractAddress = _newAddress;
+    }
 
     ///@dev Updates the Ticket price. 
     ///@param _newPrice The new ticket price
@@ -202,6 +200,8 @@ contract LottochainTickets {
         uint ticketsQuantity = div(msg.value, ticketPrice);
         //Limits the amount of tickets per transaction
         require(ticketsQuantity > 0 && ticketsQuantity <= 30);
+        //Instantiates the draws history contract
+         LottochainDrawsHistory lottochainDrawsHistory = LottochainDrawsHistory(drawsHistoryContractAddress);
         //Adds the address to each drawing list, as many times as the purchased tickets
         while(ticketsQuantity > 0){
             dailyTicketsIndex++;
@@ -212,6 +212,8 @@ contract LottochainTickets {
 
             monthlyTicketsIndex++;
             monthlyTickets[monthlyTicketsIndex] = msg.sender;
+
+            lottochainDrawsHistory.addAddressValidTicket(msg.sender);
 
             ticketsQuantity--;
         }
@@ -265,6 +267,8 @@ contract LottochainTickets {
         uint prize;
         uint drawIndex;
         address drawnAddress;
+        
+        LottochainDrawsHistory lottochainDrawsHistory = LottochainDrawsHistory(drawsHistoryContractAddress);
 
         //Daily Draw
         if(_drawType == 1 && dailyTicketsIndex > 0) {
@@ -291,12 +295,11 @@ contract LottochainTickets {
             //Emits the draw event to the blockchain
             emit DrawTicket(_drawDate, _drawType, _hashDraw1, _hashDraw2, drawnAddress, prize);
 
-            //Adds the draw attributes to the mapping for future reference
-            drawsHistory[_drawDate][1].hashDraw1 = _hashDraw1;
-            drawsHistory[_drawDate][1].hashDraw2 = _hashDraw2;
-            drawsHistory[_drawDate][1].drawnAddress = drawnAddress;
-            drawsHistory[_drawDate][1].blockNumber = block.number;
-            drawsHistory[_drawDate][1].prize = prize;
+            //Adds the draw attributes to the draws history contract for future reference
+            lottochainDrawsHistory.addDrawHistory(_drawDate, 1, _hashDraw1, _hashDraw2, drawnAddress, prize);
+            
+            //Closes the daily draw in the address-ticket-tracking mapping
+            lottochainDrawsHistory.closeDraw(1);
             
             //Transfers the net prize to the winner
             drawnAddress.transfer(prize);
@@ -326,12 +329,11 @@ contract LottochainTickets {
             //Emits the draw event to the blockchain
             emit DrawTicket(_drawDate, _drawType, _hashDraw1, _hashDraw2, drawnAddress, prize);
 
-            //Adds the draw attributes to the mapping for future reference
-            drawsHistory[_drawDate][2].hashDraw1 = _hashDraw1;
-            drawsHistory[_drawDate][2].hashDraw2 = _hashDraw2;
-            drawsHistory[_drawDate][2].drawnAddress = drawnAddress;
-            drawsHistory[_drawDate][2].blockNumber = block.number;
-            drawsHistory[_drawDate][2].prize = prize;
+            //Adds the draw attributes to the draws history contract for future reference
+            lottochainDrawsHistory.addDrawHistory(_drawDate, 2, _hashDraw1, _hashDraw2, drawnAddress, prize);
+            
+            //Closes the weekly draw in the address-ticket-tracking mapping
+            lottochainDrawsHistory.closeDraw(2);
             
             //Transfers the net prize to the winner
             drawnAddress.transfer(prize);
@@ -361,12 +363,11 @@ contract LottochainTickets {
             //Emits the draw event to the blockchain
             emit DrawTicket(_drawDate, _drawType, _hashDraw1, _hashDraw2, drawnAddress, prize);
 
-            //Adds the draw attributes to the mapping for future reference
-            drawsHistory[_drawDate][3].hashDraw1 = _hashDraw1;
-            drawsHistory[_drawDate][3].hashDraw2 = _hashDraw2;
-            drawsHistory[_drawDate][3].drawnAddress = drawnAddress;
-            drawsHistory[_drawDate][3].blockNumber = block.number;
-            drawsHistory[_drawDate][3].prize = prize;
+            //Adds the draw attributes to the draws history contract for future reference
+            lottochainDrawsHistory.addDrawHistory(_drawDate, 3, _hashDraw1, _hashDraw2, drawnAddress, prize);
+            
+            //Closes the monthly draw in the address-ticket-tracking mapping
+            lottochainDrawsHistory.closeDraw(3);
             
             //Transfers the net prize to the winner
             drawnAddress.transfer(prize);
@@ -385,7 +386,7 @@ contract LottochainTickets {
             require(superTicketsPrize >= superTicketPrice);
             
             //Deriving the index of the Winner
-            drawIndex = add(uint(_hashDraw1), uint(_hashDraw2)) % (superTicketsQty - 1);
+            drawIndex = add(uint(_hashDraw1), uint(_hashDraw2)) % superTicketsQty;
             
             //Asserting that the derived index is within the array range
             assert(drawIndex <= superTicketsQty - 1);
@@ -408,12 +409,8 @@ contract LottochainTickets {
             //Emits the draw event to the blockchain
             emit DrawTicket(_drawDate, _drawType, _hashDraw1, _hashDraw2, drawnAddress, prize);
 
-            //Adds the draw attributes to the mapping for future reference
-            drawsHistory[_drawDate][4].hashDraw1 = _hashDraw1;
-            drawsHistory[_drawDate][4].hashDraw2 = _hashDraw2;
-            drawsHistory[_drawDate][4].drawnAddress = drawnAddress;
-            drawsHistory[_drawDate][4].blockNumber = block.number;
-            drawsHistory[_drawDate][4].prize = prize;
+            //Adds the draw attributes to the draws history contract for future reference
+            lottochainDrawsHistory.addDrawHistory(_drawDate, 4, _hashDraw1, _hashDraw2, drawnAddress, prize);
 
         }
 
@@ -433,4 +430,39 @@ contract LottochainTickets {
         }
     }
     
+    ///@dev Get data about a specific historic drawnAddress
+    ///@param _drawDate the date of the draw
+    ///@param _drawType the type of the draw (1 = Daily, 2 = Weekly, 3 = Monthly, 4 = Super Tickets)
+    function drawsHistory(
+        uint _drawDate, 
+        uint8 _drawType
+    ) 
+        public 
+        view 
+        returns(
+            bytes32 hashDraw1,
+            bytes32 hashDraw2,
+            address drawnAddress,
+            uint blockNumber,
+            uint prize
+        )
+    {
+        LottochainDrawsHistory lottochainDrawsHistory = LottochainDrawsHistory(drawsHistoryContractAddress);
+        (hashDraw1, hashDraw2, drawnAddress, blockNumber, prize) = lottochainDrawsHistory.getDrawHistory(_drawDate, _drawType);
+    }
+    
+    ///@dev Gets the amount of currently valid tickets for a specific address and draw type
+    ///@param _address The address to be checked
+    function getAddressCurrentTicketQty(address _address)
+        public
+        view
+        returns(
+            uint dailyTicketsBalance, 
+            uint weeklyTicketsBalance, 
+            uint monthlyTicketsBalance
+        )
+    {
+        LottochainDrawsHistory lottochainDrawsHistory = LottochainDrawsHistory(drawsHistoryContractAddress);
+        (dailyTicketsBalance, weeklyTicketsBalance, monthlyTicketsBalance) = lottochainDrawsHistory.getAddressCurrentTicketQty(_address);
+    }
 }

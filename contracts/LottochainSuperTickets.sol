@@ -2,8 +2,8 @@ pragma solidity ^0.4.21;
 
 contract LottochainSuperTicket {
 
-    string public name = 'LC1';
-    string public symbol = 'LC1';
+    string public name = 'LC3';
+    string public symbol = 'LC3';
     
     string public standard = 'Token 0.1';
 
@@ -20,15 +20,14 @@ contract LottochainSuperTicket {
     address public owner;
     address public potentialOwner;
     
-    // Current valid tokens that should be considered for draws
-    uint public superTicketsIndex;
-    
-    // Mapping that will contain the addresses that hold tokens
+    // Array that will contain the addresses that hold tokens
     // Those addresses will be the ones running for the prize
-    mapping (uint => address) public superTickets;
+    address[] public superTickets;
     
     // Mapping that will show the indexes of each super ticket
-    // belonging to an address, running for the prize
+    // belonging to an address, running for the prize.
+    // As a single address can have multiple tickets (tokens),
+    // the mapping points to an array of indexes.
     mapping (address => uint[]) public addressesTicketsIndexes;
     
     // Mapping to flag addresses that should not be part of the draws,
@@ -110,7 +109,7 @@ contract LottochainSuperTicket {
     /**
      * Defines lottochainContract
      */
-    function setLottochainContract(address _lottochainContract) public onlyOwner {
+    function setLottochainContractAddress(address _lottochainContract) public onlyOwner {
         lottochainContract = _lottochainContract;
     }
 
@@ -122,14 +121,14 @@ contract LottochainSuperTicket {
         require(!frozenAddress[_from] && !frozenAddress[_to]);
         // Checks for zeroed values (just being safe)
         require(_value > 0);
+        // Checks if _from and _to are the same
+        require(_from != _to);
         // Prevent transfer to 0x0 address. Use burn() instead
         require(_to != 0x0);
         // Check if the sender has enough
         require(balanceOf[_from] >= _value);
         // Check for overflows
         require(balanceOf[_to] + _value >= balanceOf[_to]);
-        // Save this for lottery handling by the end
-        uint previousBalanceTo = balanceOf[_to];
         // Save this for an assertion in the future
         uint previousBalances = balanceOf[_from] + balanceOf[_to];
         // Subtract from the sender
@@ -140,40 +139,52 @@ contract LottochainSuperTicket {
         // Asserts are used to use static analysis to find bugs in your code. They should never fail
         assert(balanceOf[_from] + balanceOf[_to] == previousBalances);
         
-        // Lottery Operations
-        // Checks if the source address has no remaining balance
-        if(balanceOf[_from] == 0) {
-            // If that is the case, remove the address from the mapping for the draws
-            // Checks if the address is not the last one in the order
-            if(superTickets[superTicketsIndex] != _from) {
-                // If that is the case, copies the last address into the position of the address that is being deleted.
-                // Since the balance is now zero, it is safe to assume that _from had only one ticket index,
-                // therefore we are referring directly to the position 0 of the ticket indexes array for
-                // that address.
-                superTickets[addressesTicketsIndexes[_from][0]] = superTickets[superTicketsIndex];
-            }
-            
-            
-            
-            
-            // Decreases the index for valid tokens
-            // THE TOKEN IS GOING TO ANOTHER ADDRESS. IS THIS NEEDED? MAYBE NEED TO TEST IF _TO IS VALID
-            superTicketsIndex--;
-        } else {
-            // If the new balance is not zero, it means that _from had more than one ticket,
-            // therefore its array with ticket indexes needs to be reduced.
-            superTickets[addressesTicketsIndexes[_from]].length--;
-        }
+        // Ticket operations
+        uint ticketIndex;
         
-        // Checks if the address is not in the address exception list
-        if(!exceptedAddress[_to]) {
-            // If that is the case, increases the index for valid tokens
-            superTicketsIndex++;
-            //Checks if the destination address did not have any previous balance
-            if(previousBalanceTo == 0) {
-                // Assigns the new index to the addresses
-                addressesTicketsIndexes[_to].push(superTicketsIndex);
-
+        // Checks if the transaction is starting from an excepted address.
+        if(exceptedAddress[_from]) {
+            // One operation for each super ticket being transferred
+            while(_value > 0) {
+                // If that's the case, the ticket is not indexed in the drawing list
+                // therefore we just need to create a new item in the ticket array
+                superTickets.push(_to);
+                // and add the last index of ticket array to _to's ticket index list
+                addressesTicketsIndexes[_to].push(superTickets.length - 1);
+                // Decrements _value
+                _value--;
+            }
+        // Checks if the transaction is going into an excepted address.
+        } else if(exceptedAddress[_to]) {
+            // One operation for each super ticket being transferred
+            while(_value > 0) {
+                // If that's the case, the ticket must just be removed from the drawing list
+                // Moves the last address into the position of the ticket to be removed
+                // The ticket to be transferred will always be the last one in the address list of tickets
+                superTickets[addressesTicketsIndexes[_from][addressesTicketsIndexes[_from].length - 1]] = superTickets[superTickets.length - 1];
+                // Deletes the last position of the ticket list
+                superTickets.length--;
+                // Removes the index reference to the transferred ticket from _from's indexes list 
+                addressesTicketsIndexes[_from].length--;
+                // Decrements _value
+                _value--;
+            }
+        } else {
+            // One operation for each super ticket being transferred
+            while(_value > 0) {
+                // If none of involved addresses is excepted
+                // Transfers the ticket ownership within the reference list
+                // Retrieves the index of the ticket to be transferred
+                // The ticket to be transferred will always be the last one in the address list of tickets
+                ticketIndex = addressesTicketsIndexes[_from][addressesTicketsIndexes[_from].length - 1];
+                // Assign that ticket to _to
+                superTickets[ticketIndex] = _to;
+                // Adds the index reference to the transferred ticket into _to's indexes list 
+                addressesTicketsIndexes[_to].push(ticketIndex);
+                // Removes the index reference to the transferred ticket from _from's indexes list 
+                addressesTicketsIndexes[_from].length--;
+                // Decrements _value
+                _value--;
             }
         }
     }
