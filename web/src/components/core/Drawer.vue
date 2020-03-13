@@ -89,7 +89,7 @@
           },
           {
             icon: 'mdi-view-grid',
-            text: 'Games',
+            text: 'Next Games',
             to: '/games',
           },
           {

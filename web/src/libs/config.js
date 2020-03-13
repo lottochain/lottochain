@@ -33,7 +33,7 @@ export default {
     return locale
   },
   getNetwork () {
-    return this.get('network', 'mainnet') // 'testnet')
+    return this.get('network', 'mainnet')
   },
   getMode () {
     return this.get('mode', 'normal')

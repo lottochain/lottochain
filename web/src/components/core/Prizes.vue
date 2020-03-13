@@ -19,6 +19,12 @@
             color="transparent"
             two-line
           >
+            <v-list-item>
+              <v-list-item-title class="title font-weight-bold pl-4">
+                PRIZE$
+              </v-list-item-title>
+            </v-list-item>
+            <v-divider />
             <template v-if="loadingPrizes">
               <v-row>
                 <v-col />
@@ -33,13 +39,7 @@
                 <v-col />
               </v-row>
             </template>
-            <template v-else>
-              <v-list-item>
-                <v-list-item-title class="title font-weight-bold pl-4">
-                  PRIZE$
-                </v-list-item-title>
-              </v-list-item>
-              <v-divider />
+            <template v-else-if="lotteryActive">
               <v-list-item>
                 <v-list-item-action class="justify-center">
                   <v-icon color="light-green darken-3">
@@ -104,6 +104,51 @@
                   </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
+            </template>
+            <template v-else>
+              <v-row>
+                <v-col>
+                  <center>
+                    <v-progress-circular
+                      :size="50"
+                      :width="7"
+                      indeterminate
+                      color="lime"
+                    />
+                  </center>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col>
+                  <span class="mx-5 subtitle-1">
+                    <center>
+                      <p>
+                        <b>
+                          Drawing Prizes... Please wait!
+                        </b>
+                      </p>
+                    </center>
+                  </span>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col>
+                  <span class="caption">
+                    <p class="mx-5 text-justify">
+                      Lottochain prizes are drawn based on the first HTMLCoin and Bitcoin blocks added to their respective blockchains after <b>1 AM GMT</b>.
+                    </p>
+                    <p class="mx-5 text-justify">
+                      The ideal number of confirmations on Bitcoin's Blockchain is 6. In other words, for a Bitcoin block to be considered "irreversible", it needs 6 blocks to be added after it.
+                    </p>
+                    <p class="mx-5 text-justify">
+                      Since the average time between Bitcoin blocks is 10 minutes, the time between the selected block and its confirmation is around <b>1 hour</b>.
+                    </p>
+                    <p class="mx-5 text-justify">
+                      Therefore, every day at 1 AM GMT Lottochain will be paused for around 1 hour, until the draws are executed.
+                    </p>
+                  </span>
+                </v-col>
+              </v-row>
             </template>
           </v-list>
         </v-col>
@@ -326,38 +371,48 @@
           var decodedResult = await this.callContractFunction(
             contractAddress,
             abiJson,
-            'dailyPrize',
+            'lotteryActive',
             [],
           )
-          self.dailyPrize = parseFloat(decodedResult[0]) / 100000000
-          self.dailyPrizeUSD = (self.dailyPrize / (self.ticketPrice / 5)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+          self.lotteryActive = decodedResult[0]
 
-          decodedResult = await this.callContractFunction(
-            contractAddress,
-            abiJson,
-            'weeklyPrize',
-            [],
-          )
-          self.weeklyPrize = parseFloat(decodedResult[0]) / 100000000
-          self.weeklyPrizeUSD = (self.weeklyPrize / (self.ticketPrice / 5)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+          if (self.lotteryActive) {
+            decodedResult = await this.callContractFunction(
+              contractAddress,
+              abiJson,
+              'dailyPrize',
+              [],
+            )
+            self.dailyPrize = parseFloat(decodedResult[0]) / 100000000
+            self.dailyPrizeUSD = (self.dailyPrize / (self.ticketPrice / 5)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 
-          decodedResult = await this.callContractFunction(
-            contractAddress,
-            abiJson,
-            'monthlyPrize',
-            [],
-          )
-          self.monthlyPrize = parseFloat(decodedResult[0]) / 100000000
-          self.monthlyPrizeUSD = (self.monthlyPrize / (self.ticketPrice / 5)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+            decodedResult = await this.callContractFunction(
+              contractAddress,
+              abiJson,
+              'weeklyPrize',
+              [],
+            )
+            self.weeklyPrize = parseFloat(decodedResult[0]) / 100000000
+            self.weeklyPrizeUSD = (self.weeklyPrize / (self.ticketPrice / 5)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 
-          decodedResult = await this.callContractFunction(
-            contractAddress,
-            abiJson,
-            'superTicketsPrize',
-            [],
-          )
-          self.superTicketsPrize = parseFloat(decodedResult[0]) / 100000000
-          self.superTicketsPrizeUSD = (self.superTicketsPrize / (self.ticketPrice / 5)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+            decodedResult = await this.callContractFunction(
+              contractAddress,
+              abiJson,
+              'monthlyPrize',
+              [],
+            )
+            self.monthlyPrize = parseFloat(decodedResult[0]) / 100000000
+            self.monthlyPrizeUSD = (self.monthlyPrize / (self.ticketPrice / 5)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+
+            decodedResult = await this.callContractFunction(
+              contractAddress,
+              abiJson,
+              'superTicketsPrize',
+              [],
+            )
+            self.superTicketsPrize = parseFloat(decodedResult[0]) / 100000000
+            self.superTicketsPrizeUSD = (self.superTicketsPrize / (self.ticketPrice / 5)).toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+          }
 
           self.loadingPrizes = false
         } catch (e) {

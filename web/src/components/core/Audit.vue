@@ -411,6 +411,10 @@
       async getDraws () {
         var self = this
         self.loadingDraws = true
+        self.dailyDraws = []
+        self.weeklyDraw = []
+        self.monthlyDraw = []
+        self.manuallySearchedDraw = []
         var d = new Date()
         var workingDate = new Date(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate(), d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds(), d.getUTCMilliseconds())
         var last28th
@@ -466,7 +470,7 @@
           if (decodedResult[0] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
             self.dailyDraws.push(
               {
-                name: todayMinus2.substring(0, 4) + '-' + todayMinus1.substring(4, 6) + '-' + todayMinus1.substring(6),
+                name: todayMinus2.substring(0, 4) + '-' + todayMinus2.substring(4, 6) + '-' + todayMinus2.substring(6),
                 children: [
                   {
                     name: 'Hash HTML: ' + decodedResult[0].substring(2),
@@ -497,7 +501,7 @@
           if (decodedResult[0] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
             self.dailyDraws.push(
               {
-                name: todayMinus3.substring(0, 4) + '-' + todayMinus1.substring(4, 6) + '-' + todayMinus1.substring(6),
+                name: todayMinus3.substring(0, 4) + '-' + todayMinus3.substring(4, 6) + '-' + todayMinus3.substring(6),
                 children: [
                   {
                     name: 'Hash HTML: ' + decodedResult[0].substring(2),
@@ -528,7 +532,7 @@
           if (decodedResult[0] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
             self.dailyDraws.push(
               {
-                name: todayMinus4.substring(0, 4) + '-' + todayMinus1.substring(4, 6) + '-' + todayMinus1.substring(6),
+                name: todayMinus4.substring(0, 4) + '-' + todayMinus4.substring(4, 6) + '-' + todayMinus4.substring(6),
                 children: [
                   {
                     name: 'Hash HTML: ' + decodedResult[0].substring(2),
@@ -559,7 +563,7 @@
           if (decodedResult[0] !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
             self.dailyDraws.push(
               {
-                name: todayMinus5.substring(0, 4) + '-' + todayMinus1.substring(4, 6) + '-' + todayMinus1.substring(6),
+                name: todayMinus5.substring(0, 4) + '-' + todayMinus5.substring(4, 6) + '-' + todayMinus5.substring(6),
                 children: [
                   {
                     name: 'Hash HTML: ' + decodedResult[0].substring(2),
