@@ -34,8 +34,8 @@ contract Lottochain {
     bool public lotteryActive;
 
     //Prices definition
-    uint public ticketPrice = 1 ether; //100000000;
-    uint public superTicketPrice = 1 ether; //100000000;
+    uint public ticketPrice = 100000000;
+    uint public superTicketPrice = 100000000;
 
     //Dev wallets
     uint public lottochainWallet1Balance;
@@ -190,7 +190,7 @@ contract Lottochain {
     }
 
     ///@dev Adds the caller address to the Ticket draw list
-    ///as many times as the amount sent divided by the Super Ticket price
+    ///as many times as the amount sent divided by the Ticket price
     function buyTicket() public payable {
         //Lottery must be on
         require(lotteryActive);
