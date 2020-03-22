@@ -1,9 +1,13 @@
 pragma solidity ^0.4.21;
 
-contract LottochainSuperTicket {
+contract LottochainSTLogic {
+    function transferTokens(address _from, address _to, uint _value) public;
+}
 
-    string public name = 'LC3';
-    string public symbol = 'LC3';
+contract LottochainSuperTickets {
+
+    string public name = 'LC5';
+    string public symbol = 'LC5';
     
     string public standard = 'Token 0.1';
 
@@ -20,32 +24,25 @@ contract LottochainSuperTicket {
     address public owner;
     address public potentialOwner;
     
-    // Array that will contain the addresses that hold tokens
-    // Those addresses will be the ones running for the prize
-    address[] public superTickets;
-    
-    // Mapping that will show the indexes of each super ticket
-    // belonging to an address, running for the prize.
-    // As a single address can have multiple tickets (tokens),
-    // the mapping points to an array of indexes.
-    mapping (address => uint[]) public addressesTicketsIndexes;
-    
-    // Mapping to flag addresses that should not be part of the draws,
-    // such as the token contract owner and HTMLBunker wallets
-    mapping (address => bool) public exceptedAddress;
+    // Lottochain logics also needs to be referenced
+    address public lottochainSTLogicContract;
     
     // Mapping to freeze addresseses that violate Lottochain policies
     mapping (address => bool) public frozenAddress;
     
-    // Lottochain contract needs to be referenced
-    address public lottochainContract;
+    //Maps a wallet address to a boolean that says if that 
+    //address is authorized as an administrator
+    mapping (address => bool) public authorizedAddresses;
+    
+    // Status of token contract
+    bool public isContractActive = true;
     
     /**
      * Constructor function
      *
      * Initializes contract with initial supply tokens to the creator of the contract
      */
-    function LottochainSuperTicket() public {
+    function LottochainSuperTickets() public {
         owner = msg.sender;
         
         // Just being safe.
@@ -54,14 +51,26 @@ contract LottochainSuperTicket {
         // Give the creator all initial tokens
         balanceOf[owner] = totalSupply;
         
-        // Add the owner as an excepted address
-        exceptedAddress[owner] = true;
+        // Adds the owner as an administrator
+        authorizedAddresses[owner] = true;
+    }
+
+    ///@dev Defines a modifier that allwos only the contract owner to execute a function
+    modifier onlyOwner() {
+        require(msg.sender == owner);
+        _;
+    }
+    
+    ///@dev Allows only administrators to execute functions
+    modifier onlyAdmins() {
+        require(authorizedAddresses[msg.sender]);
+        _;
     }
 
     /** 
      * Ownership transfer functions
      */
-    function ownershipTransfer(address _newOwner) onlyOwner public {
+    function ownershipTransfer(address _newOwner) public onlyOwner {
         potentialOwner = _newOwner;
     }
 
@@ -70,31 +79,34 @@ contract LottochainSuperTicket {
         owner = potentialOwner;
     }
     
-    ///@dev Defines a modifier that allwos only the contract owner to execute a function
-    modifier onlyOwner() {
-        require(msg.sender == owner);
-        _;
+    ///@dev Adds an address to the admin list
+    ///@param _address The address to be added
+    function addAdmin(address _address) onlyAdmins public {
+        authorizedAddresses[_address] = true;
+    }
+
+    ///@dev Removes an address from the admin list
+    ///@param _address The address to be removed
+    function removeAdmin(address _address) onlyAdmins public {
+        // The owner cannot be removed
+        require(_address != owner);
+        
+        authorizedAddresses[_address] = false;
     }
     
     /**
-     * Adds an address to the exception list
+     * Toggles contract status
      */
-    function addExceptedAddress(address _address) public onlyOwner {
-        exceptedAddress[_address] = true;
-    }
-    
-    /**
-     * Removes an address from the exception list
-     */
-    function removesExceptedAddress(address _address) public onlyOwner {
-        exceptedAddress[_address] = false;
+    function toggleContractStatus() public onlyAdmins {
+        isContractActive = !isContractActive;
     }
     
     /**
      * Freezes an address
      * Frozen addresses cannot send or receive tokens
      */
-    function freezeAddress(address _address) public onlyOwner {
+    function freezeAddress(address _address) public onlyAdmins {
+        // Freezes address
         frozenAddress[_address] = true;
     }
     
@@ -102,91 +114,54 @@ contract LottochainSuperTicket {
      * Unfreezes an address
      * Frozen addresses cannot send or receive tokens
      */
-    function unfreezeAddress(address _address) public onlyOwner {
+    function unfreezeAddress(address _address) public onlyAdmins {
         frozenAddress[_address] = false;
     }
     
     /**
-     * Defines lottochainContract
+     * Defines lottochainSTLogicContract
      */
-    function setLottochainContractAddress(address _lottochainContract) public onlyOwner {
-        lottochainContract = _lottochainContract;
+    function setLottochainSTLogicContractAddress(address _lottochainSTLogicContract) public onlyAdmins {
+        // Removes current contract from admin list
+        removeAdmin(lottochainSTLogicContract);
+        // Sets new address
+        lottochainSTLogicContract = _lottochainSTLogicContract;
+        // Adds new address to admin list
+        addAdmin(lottochainSTLogicContract);
     }
 
     /**
      * Internal transfer, only can be called by this contract
      */
     function _transfer(address _from, address _to, uint _value) internal {
-        // Check for frozen address
+        // Checks if contract is active
+        require(isContractActive);
+        // Checks for frozen address
         require(!frozenAddress[_from] && !frozenAddress[_to]);
         // Checks for zeroed values (just being safe)
         require(_value > 0);
         // Checks if _from and _to are the same
         require(_from != _to);
-        // Prevent transfer to 0x0 address. Use burn() instead
+        // Prevents transfer to 0x0 address. Use burn() instead
         require(_to != 0x0);
-        // Check if the sender has enough
+        // Checks if the sender has enough
         require(balanceOf[_from] >= _value);
-        // Check for overflows
+        // Checks for overflows
         require(balanceOf[_to] + _value >= balanceOf[_to]);
-        // Save this for an assertion in the future
+        // Saves this for an assertion in the future
         uint previousBalances = balanceOf[_from] + balanceOf[_to];
-        // Subtract from the sender
+        // Subtracts from the sender
         balanceOf[_from] -= _value;
-        // Add the same to the recipient
+        // Adds the same to the recipient
         balanceOf[_to] += _value;
         emit Transfer(_from, _to, _value);
         // Asserts are used to use static analysis to find bugs in your code. They should never fail
         assert(balanceOf[_from] + balanceOf[_to] == previousBalances);
         
-        // Ticket operations
-        uint ticketIndex;
-        
-        // Checks if the transaction is starting from an excepted address.
-        if(exceptedAddress[_from]) {
-            // One operation for each super ticket being transferred
-            while(_value > 0) {
-                // If that's the case, the ticket is not indexed in the drawing list
-                // therefore we just need to create a new item in the ticket array
-                superTickets.push(_to);
-                // and add the last index of ticket array to _to's ticket index list
-                addressesTicketsIndexes[_to].push(superTickets.length - 1);
-                // Decrements _value
-                _value--;
-            }
-        // Checks if the transaction is going into an excepted address.
-        } else if(exceptedAddress[_to]) {
-            // One operation for each super ticket being transferred
-            while(_value > 0) {
-                // If that's the case, the ticket must just be removed from the drawing list
-                // Moves the last address into the position of the ticket to be removed
-                // The ticket to be transferred will always be the last one in the address list of tickets
-                superTickets[addressesTicketsIndexes[_from][addressesTicketsIndexes[_from].length - 1]] = superTickets[superTickets.length - 1];
-                // Deletes the last position of the ticket list
-                superTickets.length--;
-                // Removes the index reference to the transferred ticket from _from's indexes list 
-                addressesTicketsIndexes[_from].length--;
-                // Decrements _value
-                _value--;
-            }
-        } else {
-            // One operation for each super ticket being transferred
-            while(_value > 0) {
-                // If none of involved addresses is excepted
-                // Transfers the ticket ownership within the reference list
-                // Retrieves the index of the ticket to be transferred
-                // The ticket to be transferred will always be the last one in the address list of tickets
-                ticketIndex = addressesTicketsIndexes[_from][addressesTicketsIndexes[_from].length - 1];
-                // Assign that ticket to _to
-                superTickets[ticketIndex] = _to;
-                // Adds the index reference to the transferred ticket into _to's indexes list 
-                addressesTicketsIndexes[_to].push(ticketIndex);
-                // Removes the index reference to the transferred ticket from _from's indexes list 
-                addressesTicketsIndexes[_from].length--;
-                // Decrements _value
-                _value--;
-            }
-        }
+        // Instantiates the Super Ticket Logic contract
+        LottochainSTLogic lottochainSTLogic = LottochainSTLogic(lottochainSTLogicContract);
+        // Processes transfer in the logics contract
+        lottochainSTLogic.transferTokens(_from, _to, _value);
     }
 
     /**
@@ -232,17 +207,9 @@ contract LottochainSuperTicket {
     }
     
     /**
-     * Returns the current quantity of Super Tickets in the draw
-     */
-    function superTicketsQty() public view returns(uint) {
-        return superTickets.length;
-    }
-    
-    /**
      * Charges one Super Ticket from the drawn address
      */
-    function chargeDrawnAddress(address _drawnAddress) public {
-        require(msg.sender == lottochainContract);
+    function chargeDrawnAddress(address _drawnAddress) public onlyAdmins {
         _transfer(_drawnAddress, owner, 1);
     }
 
