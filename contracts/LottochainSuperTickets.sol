@@ -6,8 +6,8 @@ contract LottochainSTLogic {
 
 contract LottochainSuperTickets {
 
-    string public name = 'LC5';
-    string public symbol = 'LC5';
+    string public name = 'Lottochain Super Ticket';
+    string public symbol = 'LOTTO';
     
     string public standard = 'Token 0.1';
 
@@ -142,7 +142,7 @@ contract LottochainSuperTickets {
         require(_value > 0);
         // Checks if _from and _to are the same
         require(_from != _to);
-        // Prevents transfer to 0x0 address. Use burn() instead
+        // Prevents transfer to 0x0 address.
         require(_to != 0x0);
         // Checks if the sender has enough
         require(balanceOf[_from] >= _value);
@@ -154,6 +154,7 @@ contract LottochainSuperTickets {
         balanceOf[_from] -= _value;
         // Adds the same to the recipient
         balanceOf[_to] += _value;
+        // Emits the transfer event
         emit Transfer(_from, _to, _value);
         // Asserts are used to use static analysis to find bugs in your code. They should never fail
         assert(balanceOf[_from] + balanceOf[_to] == previousBalances);
